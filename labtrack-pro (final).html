@@ -1,0 +1,1745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LabTrack Pro — Laboratory Information System</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #f4f5f7;
+  --surface: #ffffff;
+  --surface2: #f0f1f3;
+  --border: #e2e4e8;
+  --border2: #cdd0d8;
+  --text: #1a1d23;
+  --text2: #5a6072;
+  --text3: #9aa0b0;
+  --accent: #1a56db;
+  --accent-light: #e8effe;
+  --accent-dark: #1040b0;
+  --green: #0a7c4e;
+  --green-light: #e6f7f0;
+  --amber: #92540a;
+  --amber-light: #fef3e2;
+  --red: #c0392b;
+  --red-light: #fdecea;
+  --purple: #5b3fa8;
+  --purple-light: #eeebff;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--sans); background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; min-height: 100vh; }
+
+/* ─── LAYOUT ─── */
+.app { display: grid; grid-template-columns: 220px 1fr; grid-template-rows: 56px 1fr; height: 100vh; }
+.topbar { grid-column: 1 / -1; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 20px; gap: 16px; z-index: 10; }
+.topbar-logo { font-family: var(--mono); font-size: 15px; font-weight: 500; color: var(--accent); letter-spacing: -0.5px; }
+.topbar-logo span { color: var(--text3); }
+.topbar-sep { width: 1px; height: 20px; background: var(--border); }
+.topbar-search { flex: 1; max-width: 360px; position: relative; }
+.topbar-search input { width: 100%; padding: 7px 12px 7px 34px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 13px; font-family: var(--sans); background: var(--bg); color: var(--text); outline: none; transition: border 0.15s; }
+.topbar-search input:focus { border-color: var(--accent); background: var(--surface); }
+.topbar-search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text3); pointer-events: none; }
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.topbar-user { display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: var(--radius); cursor: pointer; transition: background 0.15s; }
+.topbar-user:hover { background: var(--bg); }
+.avatar-sm { width: 30px; height: 30px; border-radius: 50%; background: var(--accent-light); color: var(--accent); font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.topbar-user-info .name { font-size: 13px; font-weight: 500; }
+.topbar-user-info .role { font-size: 11px; color: var(--text3); }
+.notif-btn { width: 34px; height: 34px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface); display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; transition: background 0.15s; }
+.notif-btn:hover { background: var(--bg); }
+.notif-dot { width: 8px; height: 8px; background: var(--red); border-radius: 50%; position: absolute; top: 5px; right: 5px; border: 2px solid var(--surface); }
+
+/* ─── SIDEBAR ─── */
+.sidebar { background: var(--surface); border-right: 1px solid var(--border); padding: 16px 0; overflow-y: auto; }
+.nav-section { padding: 0 12px; margin-bottom: 4px; }
+.nav-label { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; padding: 8px 8px 4px; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: var(--radius); cursor: pointer; font-size: 13px; font-weight: 400; color: var(--text2); transition: all 0.15s; margin-bottom: 2px; }
+.nav-item:hover { background: var(--bg); color: var(--text); }
+.nav-item.active { background: var(--accent-light); color: var(--accent); font-weight: 500; }
+.nav-item svg { flex-shrink: 0; }
+.nav-badge { margin-left: auto; font-size: 11px; font-family: var(--mono); font-weight: 500; background: var(--red-light); color: var(--red); padding: 1px 6px; border-radius: 99px; }
+.nav-badge.blue { background: var(--accent-light); color: var(--accent); }
+
+/* ─── MAIN ─── */
+.main { overflow-y: auto; padding: 24px 28px; }
+.page { display: none; }
+.page.active { display: block; }
+
+/* ─── SHARED COMPONENTS ─── */
+.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.page-title { font-size: 18px; font-weight: 600; }
+.page-sub { font-size: 13px; color: var(--text2); margin-top: 2px; }
+
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: var(--radius); font-size: 13px; font-family: var(--sans); font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--text); transition: all 0.15s; }
+.btn:hover { background: var(--bg); }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent-dark); }
+.btn-primary:hover { background: var(--accent-dark); }
+.btn-danger { background: var(--red-light); color: var(--red); border-color: #f5c6c6; }
+.btn-danger:hover { background: #fbd5d5; }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-icon { padding: 6px; width: 32px; height: 32px; }
+
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow); margin-bottom: 16px; overflow: hidden; }
+.card-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.card-title { font-size: 14px; font-weight: 600; }
+.card-body { padding: 18px; }
+
+.metric-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+.metric-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px; box-shadow: var(--shadow); }
+.metric-label { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+.metric-value { font-size: 28px; font-weight: 600; font-family: var(--mono); }
+.metric-value.blue { color: var(--accent); }
+.metric-value.amber { color: var(--amber); }
+.metric-value.green { color: var(--green); }
+.metric-value.red { color: var(--red); }
+.metric-sub { font-size: 11px; color: var(--text3); margin-top: 4px; }
+
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { padding: 9px 14px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; background: var(--bg); border-bottom: 1px solid var(--border); white-space: nowrap; }
+td { padding: 11px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tbody tr { transition: background 0.1s; }
+tbody tr:hover { background: var(--bg); }
+
+.badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 99px; white-space: nowrap; font-family: var(--mono); }
+.badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; opacity: 0.7; }
+.badge-pending { background: var(--amber-light); color: var(--amber); }
+.badge-processing { background: var(--accent-light); color: var(--accent); }
+.badge-released { background: var(--green-light); color: var(--green); }
+.badge-critical { background: var(--red-light); color: var(--red); animation: pulse 2s infinite; }
+.badge-high { background: var(--amber-light); color: var(--amber); }
+.badge-low { background: var(--purple-light); color: var(--purple); }
+.badge-normal { background: var(--green-light); color: var(--green); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.65} }
+
+.alert-banner { background: var(--red-light); border: 1px solid #f5c6c6; border-radius: var(--radius-lg); padding: 12px 16px; margin-bottom: 20px; display: flex; align-items: flex-start; gap: 12px; }
+.alert-icon { width: 20px; height: 20px; background: var(--red); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+.alert-text { font-size: 13px; color: var(--red); }
+.alert-text strong { font-weight: 600; }
+
+.form-group { margin-bottom: 14px; }
+.form-label { font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 5px; display: block; }
+.form-control { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 13px; font-family: var(--sans); color: var(--text); background: var(--surface); outline: none; transition: border 0.15s; }
+.form-control:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(26,86,219,0.1); }
+select.form-control { cursor: pointer; }
+.form-hint { font-size: 11px; color: var(--text3); margin-top: 4px; }
+
+.search-bar { display: flex; gap: 8px; margin-bottom: 16px; }
+.search-bar .form-control { flex: 1; }
+
+.link-btn { background: none; border: none; color: var(--accent); font-size: 12px; font-weight: 500; cursor: pointer; padding: 4px 8px; border-radius: 4px; transition: background 0.1s; }
+.link-btn:hover { background: var(--accent-light); }
+.link-btn.red { color: var(--red); }
+.link-btn.red:hover { background: var(--red-light); }
+
+/* ─── MODAL ─── */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--surface); border-radius: var(--radius-lg); width: 100%; max-width: 520px; box-shadow: var(--shadow-md); max-height: 90vh; overflow-y: auto; }
+.modal-header { padding: 18px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.modal-title { font-size: 15px; font-weight: 600; }
+.modal-close { background: none; border: none; cursor: pointer; color: var(--text3); font-size: 20px; line-height: 1; padding: 4px; border-radius: 4px; }
+.modal-close:hover { color: var(--text); background: var(--bg); }
+.modal-body { padding: 20px; }
+.modal-footer { padding: 14px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+
+/* ─── PROGRESS ─── */
+.progress-bar { height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; margin-top: 5px; }
+.progress-fill { height: 100%; border-radius: 3px; transition: width 0.4s; }
+
+/* ─── STATUS FLOW ─── */
+.status-flow { display: flex; align-items: center; gap: 0; margin-bottom: 16px; }
+.status-step { flex: 1; text-align: center; padding: 10px 8px; font-size: 12px; font-weight: 500; background: var(--bg); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); color: var(--text3); position: relative; }
+.status-step:first-child { border-left: 1px solid var(--border); border-radius: var(--radius) 0 0 var(--radius); }
+.status-step:last-child { border-right: 1px solid var(--border); border-radius: 0 var(--radius) var(--radius) 0; }
+.status-step.done { background: var(--green-light); color: var(--green); border-color: #a7e0c8; }
+.status-step.current { background: var(--accent-light); color: var(--accent); border-color: #9bb8f5; font-weight: 600; }
+
+/* ─── TABS ─── */
+.tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 16px; gap: 0; }
+.tab { padding: 10px 16px; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--text3); border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s; }
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* ─── PRINT ─── */
+@media print {
+  .sidebar, .topbar, .page-header .btn, .search-bar, .no-print { display: none !important; }
+  .app { display: block; }
+  .main { padding: 0; }
+  body { background: #fff; }
+  .card { box-shadow: none; border: 1px solid #ddd; }
+}
+
+/* ─── EMPTY STATE ─── */
+.empty-state { text-align: center; padding: 48px 20px; color: var(--text3); }
+.empty-state svg { margin-bottom: 12px; opacity: 0.4; }
+.empty-state p { font-size: 14px; }
+
+/* ─── TOAST ─── */
+#toast { position: fixed; bottom: 24px; right: 24px; background: var(--text); color: #fff; padding: 11px 18px; border-radius: var(--radius); font-size: 13px; font-weight: 500; box-shadow: var(--shadow-md); z-index: 999; opacity: 0; transform: translateY(8px); transition: all 0.25s; pointer-events: none; }
+#toast.show { opacity: 1; transform: translateY(0); }
+#toast.success { background: var(--green); }
+#toast.error { background: var(--red); }
+#toast.warning { background: var(--amber); }
+
+/* ─── REPORT PRINT AREA ─── */
+.report-preview { font-family: 'DM Sans', sans-serif; }
+.report-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid var(--text); padding-bottom: 12px; margin-bottom: 16px; }
+.report-lab-name { font-size: 20px; font-weight: 700; }
+.report-lab-sub { font-size: 12px; color: var(--text2); }
+.report-patient-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 16px; font-size: 13px; }
+.report-field label { font-size: 11px; color: var(--text3); font-weight: 500; text-transform: uppercase; }
+.report-field span { display: block; font-weight: 500; }
+
+/* ─── AUDIT TRAIL ─── */
+.audit-entry { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+.audit-entry:last-child { border-bottom: none; }
+.audit-time { color: var(--text3); font-family: var(--mono); white-space: nowrap; min-width: 80px; }
+.audit-dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+.audit-msg { color: var(--text2); }
+.audit-user { font-weight: 500; color: var(--text); }
+
+/* ─── SAVE INDICATOR ─── */
+#save-indicator { font-size:11px; color:var(--green); font-weight:500; display:flex; align-items:center; gap:4px; opacity:0; transition:opacity 0.4s; }
+#save-indicator.show { opacity:1; }
+#save-indicator svg { flex-shrink:0; }
+
+/* ─── ACCESS LEVEL BANNER ─── */
+.access-banner { display:flex; align-items:center; gap:10px; padding:10px 16px; border-radius:var(--radius); margin-bottom:16px; font-size:12px; font-weight:500; }
+.access-banner.physician { background:var(--accent-light); color:var(--accent); border:1px solid #9bb8f5; }
+.access-banner.patient   { background:var(--green-light);  color:var(--green);  border:1px solid #a7e0c8; }
+
+/* ─── DASHBOARD CHARTS ─── */
+.bar-chart { display: flex; align-items: flex-end; gap: 8px; height: 80px; }
+.bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.bar-fill { width: 100%; border-radius: 3px 3px 0 0; transition: height 0.4s; }
+.bar-label { font-size: 10px; color: var(--text3); }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-logo">LabTrack<span>Pro</span></div>
+    <div class="topbar-sep"></div>
+    <div class="topbar-search">
+      <svg class="topbar-search-icon" width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" stroke-width="1.5"/><path d="M10 10l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <input type="text" placeholder="Search patients, tests, results..." id="global-search" oninput="globalSearch(this.value)" />
+    </div>
+    <div class="topbar-right">
+      <div id="save-indicator">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M3 8.5l3.5 3.5L13 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Saved
+      </div>
+      <div class="notif-btn" onclick="showPage('dashboard')" title="Critical alerts">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1.5a5 5 0 015 5v3l1 2H2l1-2v-3a5 5 0 015-5z" stroke="currentColor" stroke-width="1.4" fill="none"/><path d="M6.5 13.5a1.5 1.5 0 003 0" stroke="currentColor" stroke-width="1.4"/></svg>
+        <div class="notif-dot" id="notif-dot"></div>
+      </div>
+      <div class="topbar-user">
+        <div class="avatar-sm" id="topbar-avatar">JR</div>
+        <div class="topbar-user-info">
+          <div class="name" id="topbar-name">J. Reyes</div>
+          <div class="role" id="topbar-role">Medical Technologist</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="nav-section">
+      <div class="nav-label">Main</div>
+      <div class="nav-item active" onclick="showPage('dashboard')" id="nav-dashboard">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6" height="6" rx="1.5" fill="currentColor" opacity="0.9"/><rect x="9" y="1" width="6" height="6" rx="1.5" fill="currentColor" opacity="0.9"/><rect x="1" y="9" width="6" height="6" rx="1.5" fill="currentColor" opacity="0.45"/><rect x="9" y="9" width="6" height="6" rx="1.5" fill="currentColor" opacity="0.45"/></svg>
+        Dashboard
+        <span class="nav-badge" id="nav-critical-badge" style="display:none">2</span>
+      </div>
+      <div class="nav-item" onclick="showPage('patients')" id="nav-patients">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5.5" r="3" fill="currentColor" opacity="0.8"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.6"/></svg>
+        Patients
+      </div>
+      <div class="nav-item" onclick="showPage('tests')" id="nav-tests">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="5" y="1" width="6" height="9" rx="2" stroke="currentColor" stroke-width="1.3" fill="none" opacity="0.8"/><circle cx="8" cy="13.5" r="1.5" fill="currentColor" opacity="0.7"/><path d="M3 7h2M11 7h2" stroke="currentColor" stroke-width="1.3" opacity="0.5"/></svg>
+        Tests
+      </div>
+      <div class="nav-item" onclick="showPage('results')" id="nav-results">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.3" fill="none" opacity="0.8"/><path d="M5 6h6M5 9h4" stroke="currentColor" stroke-width="1.3" opacity="0.6"/></svg>
+        Results
+        <span class="nav-badge blue" id="nav-pending-badge">0</span>
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Tools</div>
+      <div class="nav-item" onclick="showPage('reports')" id="nav-reports">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="3" y="1" width="10" height="14" rx="1.5" stroke="currentColor" stroke-width="1.3" fill="none" opacity="0.8"/><path d="M5.5 5h5M5.5 8h5M5.5 11h3" stroke="currentColor" stroke-width="1.3" opacity="0.6"/></svg>
+        Reports
+      </div>
+      <div class="nav-item" onclick="showPage('audit')" id="nav-audit">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h9M2 12h6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" opacity="0.7"/></svg>
+        Audit Trail
+      </div>
+      <div class="nav-item" onclick="showPage('settings')" id="nav-settings">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.1 3.1l1.4 1.4M11.5 11.5l1.4 1.4M3.1 12.9l1.4-1.4M11.5 4.5l1.4-1.4" stroke="currentColor" stroke-width="1.3" opacity="0.6"/></svg>
+        Settings
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- ═══════════════ DASHBOARD ═══════════════ -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Dashboard</div>
+          <div class="page-sub" id="dash-date"></div>
+        </div>
+        <button class="btn" onclick="refreshDashboard()">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M13.5 2.5A6.5 6.5 0 012 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M2.5 13.5A6.5 6.5 0 0114 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M13.5 2.5V6h-3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M2.5 13.5V10H6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Refresh
+        </button>
+      </div>
+      <div id="critical-banner" class="alert-banner" style="display:none">
+        <div class="alert-icon">!</div>
+        <div class="alert-text" id="critical-banner-text"></div>
+      </div>
+      <div class="metric-grid">
+        <div class="metric-card"><div class="metric-label">Total tests today</div><div class="metric-value blue" id="m-total">0</div><div class="metric-sub">All statuses</div></div>
+        <div class="metric-card"><div class="metric-label">Pending</div><div class="metric-value amber" id="m-pending">0</div><div class="metric-sub">Awaiting encoding</div></div>
+        <div class="metric-card"><div class="metric-label">Released</div><div class="metric-value green" id="m-released">0</div><div class="metric-sub">Completed today</div></div>
+        <div class="metric-card"><div class="metric-label">Critical alerts</div><div class="metric-value red" id="m-critical">0</div><div class="metric-sub">Require attention</div></div>
+      </div>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Recent activity</span></div>
+          <div class="card-body" style="padding:0">
+            <table>
+              <thead><tr><th>Patient</th><th>Test</th><th>Status</th><th>By</th></tr></thead>
+              <tbody id="dash-recent"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Critical & flagged</span></div>
+          <div class="card-body" style="padding:0">
+            <table>
+              <thead><tr><th>Patient</th><th>Test</th><th>Value</th><th>Flag</th></tr></thead>
+              <tbody id="dash-flagged"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Turnaround time (avg by test)</span></div>
+        <div class="card-body">
+          <div id="tat-chart"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ PATIENTS ═══════════════ -->
+    <div class="page" id="page-patients">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Patient Records</div>
+          <div class="page-sub" id="patient-count-label">Loading...</div>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('modal-add-patient')" id="btn-new-patient">
+          <svg width="14" height="14" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          New Patient
+        </button>
+      </div>
+      <div class="search-bar">
+        <input class="form-control" placeholder="Search by name or patient ID..." id="patient-search" oninput="renderPatients()" />
+        <select class="form-control" style="max-width:160px" id="patient-filter" onchange="renderPatients()">
+          <option value="">All patients</option>
+          <option value="critical">Has critical</option>
+          <option value="pending">Has pending</option>
+        </select>
+      </div>
+      <div class="card">
+        <div class="card-body" style="padding:0">
+          <table>
+            <thead><tr><th>Patient ID</th><th>Name</th><th>Age</th><th>Sex</th><th>Last test</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="patient-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ TESTS ═══════════════ -->
+    <div class="page" id="page-tests">
+      <div class="page-header">
+        <div><div class="page-title">Test Management</div><div class="page-sub">Manage test panels and reference ranges</div></div>
+        <button class="btn btn-primary" onclick="openModal('modal-add-test')" id="btn-add-test">
+          <svg width="14" height="14" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          Add Test
+        </button>
+      </div>
+      <div class="search-bar">
+        <input class="form-control" placeholder="Search tests or panels..." id="test-search" oninput="renderTests()" />
+        <select class="form-control" style="max-width:160px" id="test-filter" onchange="renderTests()">
+          <option value="">All panels</option>
+        </select>
+      </div>
+      <div class="card">
+        <div class="card-body" style="padding:0">
+          <table>
+            <thead><tr><th>Test name</th><th>Panel</th><th>Ref. range (F)</th><th>Ref. range (M)</th><th>Unit</th><th>Critical low</th><th>Critical high</th><th>Avg TAT</th><th>Actions</th></tr></thead>
+            <tbody id="test-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ RESULTS ═══════════════ -->
+    <div class="page" id="page-results">
+      <div class="page-header">
+        <div><div class="page-title">Result Encoding</div><div class="page-sub">Encode, validate, and release laboratory results</div></div>
+        <button class="btn btn-primary" onclick="openModal('modal-encode')" id="btn-encode-result">
+          <svg width="14" height="14" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          Encode Result
+        </button>
+      </div>
+      <div class="search-bar">
+        <input class="form-control" placeholder="Search by patient name or test..." id="result-search" oninput="renderResults()" />
+        <select class="form-control" style="max-width:160px" id="result-filter" onchange="renderResults()">
+          <option value="">All statuses</option>
+          <option value="Pending">Pending</option>
+          <option value="Processing">Processing</option>
+          <option value="Released">Released</option>
+          <option value="Critical">Critical</option>
+        </select>
+      </div>
+      <div class="card">
+        <div class="card-body" style="padding:0">
+          <table>
+            <thead><tr><th>Patient</th><th>Test</th><th>Result</th><th>Ref. range</th><th>Unit</th><th>Flag</th><th>Status</th><th>Date</th><th>Encoded by</th><th>Actions</th></tr></thead>
+            <tbody id="result-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ REPORTS ═══════════════ -->
+    <div class="page" id="page-reports">
+      <div class="page-header">
+        <div><div class="page-title">Lab Reports</div><div class="page-sub">Generate and print patient laboratory reports</div></div>
+      </div>
+      <div class="search-bar">
+        <input class="form-control" placeholder="Search patient..." id="report-search" oninput="renderReportList()" />
+        <select class="form-control" style="max-width:180px" id="report-patient-select" onchange="loadReport(this.value)">
+          <option value="">— Select patient —</option>
+        </select>
+      </div>
+      <div id="report-area"></div>
+    </div>
+
+    <!-- ═══════════════ AUDIT TRAIL ═══════════════ -->
+    <div class="page" id="page-audit">
+      <div class="page-header">
+        <div><div class="page-title">Audit Trail</div><div class="page-sub">All system actions logged with user and timestamp</div></div>
+        <button class="btn btn-sm" onclick="clearAudit()" id="btn-clear-audit">Clear log</button>
+      </div>
+      <div class="card">
+        <div class="card-body" id="audit-log"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ SETTINGS ═══════════════ -->
+    <div class="page" id="page-settings">
+      <div class="page-header"><div class="page-title">Settings</div></div>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-header"><span class="card-title">User profile</span></div>
+          <div class="card-body">
+            <div class="form-group"><label class="form-label">Full name</label><input class="form-control" id="set-name" value="J. Reyes" /></div>
+            <div class="form-group"><label class="form-label">Role / Display</label>
+              <select class="form-control" id="set-role">
+                <option>Medical Technologist</option>
+                <option>Pathologist</option>
+                <option>Administrator</option>
+                <option>Patient</option>
+              </select>
+            </div>
+            <div class="form-group"><label class="form-label">Access Level</label>
+              <select class="form-control" id="set-access" onchange="updateAccessHint()">
+                <option value="admin">Admin — Full Access</option>
+                <option value="physician">Physician — Limited Access</option>
+                <option value="patient">Patient — Results Only</option>
+              </select>
+              <div class="form-hint" id="set-access-hint" style="margin-top:5px"></div>
+            </div>
+            <div class="form-group"><label class="form-label">Initials (for avatar)</label><input class="form-control" id="set-initials" value="JR" maxlength="3" /></div>
+            <button class="btn btn-primary" onclick="saveSettings()">Save changes</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">System info</span></div>
+          <div class="card-body">
+            <div style="font-size:13px; color:var(--text2); line-height:2;">
+              <div><strong>System:</strong> LabTrack Pro v1.0</div>
+              <div><strong>RA 10173:</strong> Data Privacy Compliant</div>
+              <div><strong>Session:</strong> Active</div>
+              <div><strong>Storage:</strong> <span id="stat-storage" style="color:var(--green);font-weight:500">localStorage (persistent)</span></div>
+              <div><strong>Total patients:</strong> <span id="stat-patients">—</span></div>
+              <div><strong>Total results:</strong> <span id="stat-results">—</span></div>
+              <div><strong>Total tests:</strong> <span id="stat-tests">—</span></div>
+              <div><strong>DB size:</strong> <span id="stat-dbsize">—</span></div>
+            </div>
+            <div style="margin-top:16px; display:flex; gap:8px; flex-wrap:wrap;">
+              <button class="btn btn-sm" onclick="exportData()">Export data (JSON)</button>
+              <button class="btn btn-sm" onclick="importData()">Import data (JSON)</button>
+              <input type="file" id="import-file-input" accept=".json" style="display:none" onchange="handleImport(this)" />
+              <button class="btn btn-sm btn-danger" onclick="resetDB()" id="btn-reset-db">Reset database</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ═══════════════ MODALS ═══════════════ -->
+
+<!-- ADD PATIENT -->
+<div class="modal-overlay" id="modal-add-patient">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-patient-title">Add New Patient</div>
+      <button class="modal-close" onclick="closeModal('modal-add-patient')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-patient-id" />
+      <div class="two-col">
+        <div class="form-group"><label class="form-label">First name *</label><input class="form-control" id="p-firstname" placeholder="e.g. Maria" /></div>
+        <div class="form-group"><label class="form-label">Last name *</label><input class="form-control" id="p-lastname" placeholder="e.g. Santos" /></div>
+      </div>
+      <div class="three-col">
+        <div class="form-group"><label class="form-label">Age *</label><input class="form-control" id="p-age" type="number" min="0" max="130" placeholder="e.g. 34" /></div>
+        <div class="form-group"><label class="form-label">Sex *</label>
+          <select class="form-control" id="p-sex"><option value="">— Select —</option><option>Female</option><option>Male</option></select>
+        </div>
+        <div class="form-group"><label class="form-label">Blood type</label>
+          <select class="form-control" id="p-blood"><option value="">Unknown</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option></select>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Address</label><input class="form-control" id="p-address" placeholder="Optional" /></div>
+      <div class="two-col">
+        <div class="form-group"><label class="form-label">Contact number</label><input class="form-control" id="p-contact" placeholder="e.g. 09xx-xxx-xxxx" /></div>
+        <div class="form-group"><label class="form-label">Physician</label><input class="form-control" id="p-physician" placeholder="Requesting doctor" /></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-add-patient')">Cancel</button>
+      <button class="btn btn-primary" onclick="savePatient()">Save Patient</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD TEST -->
+<div class="modal-overlay" id="modal-add-test">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-test-title">Add New Test</div>
+      <button class="modal-close" onclick="closeModal('modal-add-test')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-test-id" />
+      <div class="two-col">
+        <div class="form-group"><label class="form-label">Test name *</label><input class="form-control" id="t-name" placeholder="e.g. Hemoglobin" /></div>
+        <div class="form-group"><label class="form-label">Panel *</label><input class="form-control" id="t-panel" placeholder="e.g. CBC" /></div>
+      </div>
+      <div class="two-col">
+        <div class="form-group"><label class="form-label">Ref. range (Female)</label><input class="form-control" id="t-ref-f" placeholder="e.g. 12.0–16.0" /></div>
+        <div class="form-group"><label class="form-label">Ref. range (Male)</label><input class="form-control" id="t-ref-m" placeholder="e.g. 13.5–17.5" /></div>
+      </div>
+      <div class="three-col">
+        <div class="form-group"><label class="form-label">Unit</label><input class="form-control" id="t-unit" placeholder="e.g. g/dL" /></div>
+        <div class="form-group"><label class="form-label">Critical low</label><input class="form-control" id="t-crit-low" type="number" placeholder="e.g. 7" /></div>
+        <div class="form-group"><label class="form-label">Critical high</label><input class="form-control" id="t-crit-high" type="number" placeholder="e.g. 20" /></div>
+      </div>
+      <div class="form-group"><label class="form-label">Avg TAT (minutes)</label><input class="form-control" id="t-tat" type="number" placeholder="e.g. 45" /></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-add-test')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTest()">Save Test</button>
+    </div>
+  </div>
+</div>
+
+<!-- ENCODE RESULT -->
+<div class="modal-overlay" id="modal-encode">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Encode Result</div>
+      <button class="modal-close" onclick="closeModal('modal-encode')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-result-id" />
+      <div class="form-group"><label class="form-label">Patient *</label>
+        <select class="form-control" id="e-patient" onchange="updateEncodeTest()">
+          <option value="">— Select patient —</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Test *</label>
+        <select class="form-control" id="e-test" onchange="updateEncodeRef()">
+          <option value="">— Select test —</option>
+        </select>
+      </div>
+      <div class="form-group" id="e-ref-display" style="display:none">
+        <div style="background:var(--bg); border-radius:var(--radius); padding:10px 12px; font-size:12px; color:var(--text2);">
+          Reference range: <strong id="e-ref-text">—</strong> &nbsp;|&nbsp; Unit: <strong id="e-unit-text">—</strong> &nbsp;|&nbsp; Critical: <span id="e-crit-text" style="color:var(--red)">—</span>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Result value *</label><input class="form-control" id="e-value" type="number" step="any" placeholder="Enter numeric value" oninput="previewFlag()" /></div>
+      <div id="e-flag-preview" style="display:none; margin-bottom:12px; padding:10px 12px; border-radius:var(--radius); font-size:13px; font-weight:500;"></div>
+      <div class="form-group"><label class="form-label">Notes / remarks</label><textarea class="form-control" id="e-notes" rows="2" placeholder="Optional clinical notes"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-encode')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveResult()">Save & Auto-Flag</button>
+    </div>
+  </div>
+</div>
+
+<!-- VIEW PATIENT MODAL -->
+<div class="modal-overlay" id="modal-view-patient">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-header">
+      <div class="modal-title" id="vp-title">Patient Profile</div>
+      <button class="modal-close" onclick="closeModal('modal-view-patient')">✕</button>
+    </div>
+    <div class="modal-body" id="vp-body"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-view-patient')">Close</button>
+      <button class="btn btn-primary" onclick="printPatientReport()">Print Report</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════
+//  PERSISTENCE — localStorage
+// ══════════════════════════════════════════
+const DB_KEY = 'labtrack_pro_db';
+const DB_VERSION = 'v2-clean'; // bump this to force a reset when breaking changes occur
+const DB_VERSION_KEY = 'labtrack_pro_version';
+
+const DB_DEFAULTS = {
+  patients: [],
+  tests: [],
+  results: [],
+  auditLog: [],
+  nextPatientId: 1,
+  nextTestId: 1,
+  nextResultId: 1,
+  currentUser: { name: 'J. Reyes', role: 'Medical Technologist', initials: 'JR', accessLevel: 'admin' }
+};
+
+function loadDB() {
+  try {
+    // If the saved version doesn't match, wipe old data (removes demo entries)
+    const savedVersion = localStorage.getItem(DB_VERSION_KEY);
+    if (savedVersion !== DB_VERSION) {
+      localStorage.removeItem(DB_KEY);
+      localStorage.setItem(DB_VERSION_KEY, DB_VERSION);
+      return null; // Start fresh
+    }
+    const raw = localStorage.getItem(DB_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return Object.assign({}, DB_DEFAULTS, parsed);
+    }
+  } catch(e) { console.warn('LabTrack: could not load saved data.', e); }
+  return null;
+}
+
+function saveDB() {
+  try {
+    localStorage.setItem(DB_KEY, JSON.stringify(db));
+    localStorage.setItem(DB_VERSION_KEY, DB_VERSION);
+    // Flash "Saved" indicator
+    const ind = document.getElementById('save-indicator');
+    if (ind) {
+      ind.classList.add('show');
+      clearTimeout(ind._t);
+      ind._t = setTimeout(() => ind.classList.remove('show'), 2000);
+    }
+  } catch(e) { console.warn('LabTrack: could not save data.', e); }
+}
+
+function resetDB() {
+  if (!isAdmin()) { toast('Access denied', 'error'); return; }
+  if (!confirm('⚠ This will permanently delete ALL patients, results, tests, and audit logs and start fresh. Continue?')) return;
+  localStorage.removeItem(DB_KEY);
+  localStorage.removeItem(DB_VERSION_KEY);
+  toast('Database cleared — reloading…', 'warning');
+  setTimeout(() => location.reload(), 1200);
+}
+
+// ══════════════════════════════════════════
+//  DATA STORE
+// ══════════════════════════════════════════
+let db = Object.assign({}, DB_DEFAULTS);
+
+// ══════════════════════════════════════════
+//  ACCESS CONTROL
+// ══════════════════════════════════════════
+function getAccess() { return db.currentUser.accessLevel; }
+function isAdmin()     { return getAccess() === 'admin'; }
+function isPhysician() { return getAccess() === 'physician'; }
+function isPatient()   { return getAccess() === 'patient'; }
+
+function applyAccessControl() {
+  const lvl = getAccess();
+
+  // ── Sidebar nav items visibility ──
+  const navMap = {
+    'nav-dashboard': ['admin','physician'],
+    'nav-patients':  ['admin','physician'],
+    'nav-tests':     ['admin'],
+    'nav-results':   ['admin','physician','patient'],
+    'nav-reports':   ['admin','physician'],
+    'nav-audit':     ['admin'],
+    'nav-settings':  ['admin','physician','patient'],
+  };
+  Object.entries(navMap).forEach(([id, allowed]) => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = allowed.includes(lvl) ? '' : 'none';
+  });
+
+  // ── Role banner color ──
+  const roleEl = document.getElementById('topbar-role');
+  if (roleEl) {
+    roleEl.style.color = lvl === 'admin' ? 'var(--red)' : lvl === 'physician' ? 'var(--accent)' : 'var(--green)';
+  }
+
+  // ── Access badge in topbar ──
+  let badge = document.getElementById('access-badge');
+  if (!badge) {
+    badge = document.createElement('span');
+    badge.id = 'access-badge';
+    badge.style.cssText = 'font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;margin-left:4px;text-transform:uppercase;letter-spacing:0.06em;';
+    document.querySelector('.topbar-user-info').appendChild(badge);
+  }
+  const badgeStyles = {
+    admin:     { bg:'var(--red-light)',    color:'var(--red)',    text:'Admin' },
+    physician: { bg:'var(--accent-light)', color:'var(--accent)', text:'Physician' },
+    patient:   { bg:'var(--green-light)',  color:'var(--green)',  text:'Patient' },
+  };
+  const bs = badgeStyles[lvl] || badgeStyles.admin;
+  badge.textContent = bs.text;
+  badge.style.background = bs.bg;
+  badge.style.color = bs.color;
+
+  // ── Access banners on pages ──
+  function setPageBanner(pageId, msg, cls) {
+    const page = document.getElementById(pageId);
+    if (!page) return;
+    let banner = page.querySelector('.access-banner');
+    if (msg) {
+      if (!banner) {
+        banner = document.createElement('div');
+        banner.className = 'access-banner ' + cls;
+        banner.innerHTML = `<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.4"/><path d="M8 7v4M8 5.5v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> ${msg}`;
+        page.querySelector('.page-header').insertAdjacentElement('afterend', banner);
+      } else {
+        banner.className = 'access-banner ' + cls;
+        banner.innerHTML = `<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.4"/><path d="M8 7v4M8 5.5v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> ${msg}`;
+      }
+    } else if (banner) {
+      banner.remove();
+    }
+  }
+
+  if (isPhysician()) {
+    setPageBanner('page-patients', 'Physician access — you can view all patients and update the assigned physician field only.', 'physician');
+    setPageBanner('page-results',  'Physician access — results are read-only. Contact admin to encode or modify results.', 'physician');
+    setPageBanner('page-reports',  'Physician access — reports are view and print only.', 'physician');
+    setPageBanner('page-dashboard','Physician access — dashboard is read-only.', 'physician');
+  } else if (isPatient()) {
+    setPageBanner('page-results', 'Patient access — showing your released laboratory results only.', 'patient');
+  } else {
+    // Admin: remove all banners
+    ['page-patients','page-results','page-reports','page-dashboard'].forEach(id => setPageBanner(id, '', ''));
+  }
+
+  // ── Hide/show New Patient button ──
+  const newPatBtn = document.getElementById('btn-new-patient');
+  if (newPatBtn) newPatBtn.style.display = isAdmin() ? '' : 'none';
+
+  // ── Hide/show Add Test button ──
+  const addTestBtn = document.getElementById('btn-add-test');
+  if (addTestBtn) addTestBtn.style.display = isAdmin() ? '' : 'none';
+
+  // ── Hide/show Clear Audit button ──
+  const clearAuditBtn = document.getElementById('btn-clear-audit');
+  if (clearAuditBtn) clearAuditBtn.style.display = isAdmin() ? '' : 'none';
+
+  // ── Route patient to results-only ──
+  if (isPatient()) {
+    const currentActive = document.querySelector('.page.active');
+    const allowed = ['page-results','page-settings'];
+    if (!currentActive || !allowed.includes(currentActive.id)) {
+      showPage('results');
+    }
+  }
+}
+
+// ══════════════════════════════════════════
+//  SEED DATA (only runs on first launch)
+// ══════════════════════════════════════════
+function seedData() {
+  // Restore saved data if it exists
+  const saved = loadDB();
+  if (saved) {
+    db = saved;
+  }
+  // Always sync the topbar to whoever is in db.currentUser
+  document.getElementById('topbar-name').textContent = db.currentUser.name;
+  document.getElementById('topbar-role').textContent = db.currentUser.role;
+  document.getElementById('topbar-avatar').textContent = db.currentUser.initials;
+  // Fresh install: nothing to seed — dashboard starts empty
+}
+
+// ══════════════════════════════════════════
+//  UTILITIES
+// ══════════════════════════════════════════
+function uid() { return Date.now() + Math.random().toString(36).slice(2,6); }
+
+function fmt(d) {
+  if (!d) return '—';
+  const dt = new Date(d);
+  return dt.toLocaleDateString('en-PH', { month:'short', day:'numeric', year:'numeric' }) + ' ' +
+    dt.toLocaleTimeString('en-PH', { hour:'2-digit', minute:'2-digit' });
+}
+
+function fmtDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('en-PH', { month:'long', day:'numeric', year:'numeric' });
+}
+
+function getPatient(id) { return db.patients.find(p => p.id === id); }
+function getTest(id) { return db.tests.find(t => t.id === id); }
+function getPatientName(id) { const p = getPatient(id); return p ? `${p.lastname}, ${p.firstname}` : '—'; }
+function getTestName(id) { const t = getTest(id); return t ? t.name : '—'; }
+function getPatientPID(id) { return 'PT-' + String(id).padStart(4,'0'); }
+
+function computeFlag(test, value, sex) {
+  if (value === null || value === undefined || isNaN(value)) return null;
+  const v = parseFloat(value);
+  if (test.critLow !== null && test.critLow !== '' && v <= parseFloat(test.critLow)) return 'Critical';
+  if (test.critHigh !== null && test.critHigh !== '' && v >= parseFloat(test.critHigh)) return 'Critical';
+  const ref = sex === 'Female' ? test.refF : test.refM;
+  const m = ref.match(/([\d.]+)\s*[–\-]\s*([\d.]+)/);
+  if (m) {
+    const lo = parseFloat(m[1]), hi = parseFloat(m[2]);
+    if (v < lo) return 'Low';
+    if (v > hi) return 'High';
+    return 'Normal';
+  }
+  const lt = ref.match(/<\s*([\d.]+)/);
+  if (lt) { return v < parseFloat(lt[1]) ? 'Normal' : 'High'; }
+  const gt = ref.match(/>\s*([\d.]+)/);
+  if (gt) { return v > parseFloat(gt[1]) ? 'Normal' : 'Low'; }
+  return 'Normal';
+}
+
+function badgeHTML(flag) {
+  if (!flag) return '—';
+  const cls = { Normal:'badge-normal', High:'badge-high', Low:'badge-low', Critical:'badge-critical', Pending:'badge-pending', Processing:'badge-processing', Released:'badge-released' };
+  return `<span class="badge ${cls[flag] || ''}">${flag}</span>`;
+}
+
+function toast(msg, type='') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show ' + type;
+  setTimeout(() => { el.className = ''; }, 3000);
+}
+
+function addAudit(msg) {
+  const now = new Date();
+  db.auditLog.unshift({ time: now.toISOString(), msg, user: db.currentUser.name });
+  // Keep audit log to 200 entries max to avoid bloating storage
+  if (db.auditLog.length > 200) db.auditLog = db.auditLog.slice(0, 200);
+  saveDB();
+  renderAudit();
+}
+
+// ══════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════
+function showPage(name) {
+  // ── Access gate ──
+  const allowed = {
+    admin:     ['dashboard','patients','tests','results','reports','audit','settings'],
+    physician: ['dashboard','patients','results','reports','settings'],
+    patient:   ['results','settings'],
+  };
+  const lvl = getAccess();
+  if (!(allowed[lvl] || []).includes(name)) {
+    toast('Access denied for your role', 'error');
+    // Redirect to first allowed page
+    name = (allowed[lvl] || ['results'])[0];
+  }
+
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  const navEl = document.getElementById('nav-' + name);
+  if (navEl) navEl.classList.add('active');
+  if (name === 'dashboard') refreshDashboard();
+  if (name === 'patients') { renderPatients(); }
+  if (name === 'tests') { renderTests(); renderTestFilter(); }
+  if (name === 'results') { renderResults(); }
+  if (name === 'reports') { renderReportList(); }
+  if (name === 'audit') { renderAudit(); }
+  if (name === 'settings') { renderSettings(); }
+}
+
+// ══════════════════════════════════════════
+//  MODAL HELPERS
+// ══════════════════════════════════════════
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+});
+
+// ══════════════════════════════════════════
+//  DASHBOARD
+// ══════════════════════════════════════════
+function refreshDashboard() {
+  const today = new Date().toDateString();
+  const todayResults = db.results.filter(r => new Date(r.date).toDateString() === today);
+  const pending = db.results.filter(r => r.status === 'Pending');
+  const released = db.results.filter(r => r.status === 'Released' && new Date(r.date).toDateString() === today);
+  const criticals = db.results.filter(r => r.flag === 'Critical');
+
+  document.getElementById('m-total').textContent = todayResults.length;
+  document.getElementById('m-pending').textContent = pending.length;
+  document.getElementById('m-released').textContent = released.length;
+  document.getElementById('m-critical').textContent = criticals.length;
+  document.getElementById('dash-date').textContent = new Date().toLocaleDateString('en-PH', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+  // Critical badge
+  const badge = document.getElementById('nav-critical-badge');
+  const pendBadge = document.getElementById('nav-pending-badge');
+  if (criticals.length > 0) { badge.textContent = criticals.length; badge.style.display = ''; document.getElementById('notif-dot').style.display = ''; } 
+  else { badge.style.display = 'none'; document.getElementById('notif-dot').style.display = 'none'; }
+  pendBadge.textContent = pending.length;
+
+  // Critical banner
+  const banner = document.getElementById('critical-banner');
+  if (criticals.length > 0) {
+    banner.style.display = 'flex';
+    const cnames = criticals.map(r => `${getPatientName(r.patientId)} — ${getTestName(r.testId)} (${r.value})`).join(', ');
+    document.getElementById('critical-banner-text').innerHTML = `<strong>${criticals.length} critical value(s) require immediate attention:</strong> ${cnames}`;
+  } else { banner.style.display = 'none'; }
+
+  // Recent
+  const recent = db.results.slice().reverse().slice(0,6);
+  document.getElementById('dash-recent').innerHTML = recent.length === 0
+    ? '<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:20px">No results yet</td></tr>'
+    : recent.map(r => `<tr>
+        <td style="font-weight:500">${getPatientName(r.patientId)}</td>
+        <td>${getTestName(r.testId)}</td>
+        <td>${badgeHTML(r.status)}</td>
+        <td style="color:var(--text3)">${r.encodedBy || '—'}</td>
+      </tr>`).join('');
+
+  // Flagged
+  const flagged = db.results.filter(r => r.flag && r.flag !== 'Normal' && r.value !== null).slice().reverse().slice(0,6);
+  document.getElementById('dash-flagged').innerHTML = flagged.length === 0
+    ? '<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:20px">No flagged results</td></tr>'
+    : flagged.map(r => `<tr>
+        <td style="font-weight:500">${getPatientName(r.patientId)}</td>
+        <td>${getTestName(r.testId)}</td>
+        <td style="font-family:var(--mono);font-weight:500;color:${r.flag==='Critical'?'var(--red)':r.flag==='High'?'var(--amber)':'var(--purple)'}">${r.value}</td>
+        <td>${badgeHTML(r.flag)}</td>
+      </tr>`).join('');
+
+  // TAT chart
+  renderTatChart();
+}
+
+function renderTatChart() {
+  const panels = [...new Set(db.tests.map(t => t.panel))];
+  const avgTat = panels.map(panel => {
+    const ts = db.tests.filter(t => t.panel === panel);
+    return { panel, avg: Math.round(ts.reduce((a,t) => a + (t.tat||0), 0) / ts.length) };
+  });
+  const max = Math.max(...avgTat.map(x => x.avg), 1);
+  const colors = ['#1a56db','#0a7c4e','#92540a','#5b3fa8','#c0392b','#0f6e56'];
+  document.getElementById('tat-chart').innerHTML = `
+    <div style="display:flex;align-items:flex-end;gap:12px;height:90px;">
+      ${avgTat.map((x,i) => `
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+          <div style="font-size:11px;font-family:var(--mono);font-weight:500;color:var(--text)">${x.avg}m</div>
+          <div style="width:100%;height:${Math.max(8, Math.round((x.avg/max)*60))}px;background:${colors[i%colors.length]};border-radius:3px 3px 0 0;opacity:0.8;transition:opacity 0.2s" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.8"></div>
+          <div style="font-size:11px;color:var(--text3);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%">${x.panel}</div>
+        </div>`).join('')}
+    </div>`;
+}
+
+// ══════════════════════════════════════════
+//  PATIENTS
+// ══════════════════════════════════════════
+function renderPatients() {
+  const q = document.getElementById('patient-search').value.toLowerCase();
+  const f = document.getElementById('patient-filter').value;
+  let list = db.patients;
+
+  if (q) list = list.filter(p => `${p.firstname} ${p.lastname}`.toLowerCase().includes(q) || getPatientPID(p.id).includes(q));
+  if (f === 'critical') list = list.filter(p => db.results.some(r => r.patientId === p.id && r.flag === 'Critical'));
+  if (f === 'pending') list = list.filter(p => db.results.some(r => r.patientId === p.id && r.status === 'Pending'));
+
+  document.getElementById('patient-count-label').textContent = `${list.length} patient(s) found`;
+
+  const tbody = document.getElementById('patient-table');
+  if (list.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text3)">No patients found</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = list.map(p => {
+    const lastResult = db.results.filter(r => r.patientId === p.id).slice(-1)[0];
+    const statusBadge = lastResult ? badgeHTML(lastResult.status) : '<span style="color:var(--text3);font-size:12px">No results</span>';
+    const lastTest = lastResult ? getTestName(lastResult.testId) : '—';
+    return `<tr>
+      <td style="font-family:var(--mono);font-size:12px;color:var(--text3)">${getPatientPID(p.id)}</td>
+      <td style="font-weight:500">${p.lastname}, ${p.firstname}</td>
+      <td>${p.age}</td>
+      <td>${p.sex}</td>
+      <td>${lastTest}</td>
+      <td>${statusBadge}</td>
+      <td style="white-space:nowrap">
+        <button class="link-btn" onclick="viewPatient(${p.id})">View</button>
+        ${isAdmin() ? `<button class="link-btn" onclick="editPatient(${p.id})">Edit</button>` : ''}
+        ${isPhysician() ? `<button class="link-btn" onclick="editPatientPhysician(${p.id})">Edit Physician</button>` : ''}
+        ${isAdmin() ? `<button class="link-btn red" onclick="deletePatient(${p.id})">Delete</button>` : ''}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function openAddPatient() {
+  if (isPatient()) { toast('Access denied', 'error'); return; }
+  if (isPhysician()) { toast('Physicians cannot add new patients', 'error'); return; }
+  restorePatientModalFields();
+  document.getElementById('modal-patient-title').textContent = 'Add New Patient';
+  document.getElementById('edit-patient-id').value = '';
+  ['p-firstname','p-lastname','p-address','p-contact','p-physician'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('p-age').value = '';
+  document.getElementById('p-sex').value = '';
+  document.getElementById('p-blood').value = '';
+  openModal('modal-add-patient');
+}
+
+function savePatient() {
+  if (!isAdmin() && !isPhysician()) { toast('Access denied', 'error'); return; }
+
+  const editId = document.getElementById('edit-patient-id').value;
+
+  // Physician: can only update the physician field on existing patients
+  if (isPhysician()) {
+    if (!editId) { toast('Physicians cannot add new patients', 'error'); return; }
+    const p = db.patients.find(x => x.id === parseInt(editId));
+    if (p) {
+      const newPhys = document.getElementById('p-physician').value.trim();
+      p.physician = newPhys;
+      addAudit(`Physician field updated for ${p.lastname}, ${p.firstname} by ${db.currentUser.name}`);
+      saveDB();
+      toast('Physician updated', 'success');
+    }
+    closeModal('modal-add-patient');
+    renderPatients();
+    return;
+  }
+
+  // Admin: full save
+  const fn = document.getElementById('p-firstname').value.trim();
+  const ln = document.getElementById('p-lastname').value.trim();
+  const age = document.getElementById('p-age').value.trim();
+  const sex = document.getElementById('p-sex').value;
+  if (!fn || !ln || !age || !sex) { toast('Please fill in required fields', 'error'); return; }
+
+  if (editId) {
+    const p = db.patients.find(x => x.id === parseInt(editId));
+    if (p) {
+      Object.assign(p, { firstname:fn, lastname:ln, age:parseInt(age), sex, blood:document.getElementById('p-blood').value, address:document.getElementById('p-address').value, contact:document.getElementById('p-contact').value, physician:document.getElementById('p-physician').value });
+      addAudit(`Patient ${ln}, ${fn} profile updated`);
+      saveDB();
+      toast('Patient updated', 'success');
+    }
+  } else {
+    const p = { id: db.nextPatientId++, firstname:fn, lastname:ln, age:parseInt(age), sex, blood:document.getElementById('p-blood').value, address:document.getElementById('p-address').value, contact:document.getElementById('p-contact').value, physician:document.getElementById('p-physician').value };
+    db.patients.push(p);
+    addAudit(`New patient added: ${ln}, ${fn} (${getPatientPID(p.id)})`);
+    saveDB();
+    toast('Patient added', 'success');
+  }
+  closeModal('modal-add-patient');
+  renderPatients();
+  refreshDashboard();
+}
+
+function editPatient(id) {
+  if (!isAdmin()) { toast('Access denied', 'error'); return; }
+  const p = getPatient(id);
+  if (!p) return;
+  document.getElementById('modal-patient-title').textContent = 'Edit Patient';
+  document.getElementById('edit-patient-id').value = id;
+  document.getElementById('p-firstname').value = p.firstname;
+  document.getElementById('p-lastname').value = p.lastname;
+  document.getElementById('p-age').value = p.age;
+  document.getElementById('p-sex').value = p.sex;
+  document.getElementById('p-blood').value = p.blood || '';
+  document.getElementById('p-address').value = p.address || '';
+  document.getElementById('p-contact').value = p.contact || '';
+  document.getElementById('p-physician').value = p.physician || '';
+  openModal('modal-add-patient');
+}
+
+function editPatientPhysician(id) {
+  // Physician-only limited edit: only the physician field is shown
+  const p = getPatient(id);
+  if (!p) return;
+  document.getElementById('modal-patient-title').textContent = 'Update Physician — ' + p.lastname + ', ' + p.firstname;
+  document.getElementById('edit-patient-id').value = id;
+  // pre-fill all fields so savePatient doesn't break, but lock them
+  document.getElementById('p-firstname').value = p.firstname;
+  document.getElementById('p-lastname').value = p.lastname;
+  document.getElementById('p-age').value = p.age;
+  document.getElementById('p-sex').value = p.sex;
+  document.getElementById('p-blood').value = p.blood || '';
+  document.getElementById('p-address').value = p.address || '';
+  document.getElementById('p-contact').value = p.contact || '';
+  document.getElementById('p-physician').value = p.physician || '';
+
+  // Show only physician row, disable all others
+  const allGroups = document.querySelectorAll('#modal-add-patient .form-group, #modal-add-patient .two-col, #modal-add-patient .three-col');
+  allGroups.forEach(el => el.style.display = 'none');
+  // Show only the physician field row (last .two-col contains contact + physician)
+  const physicianGroup = document.getElementById('p-physician').closest('.form-group');
+  if (physicianGroup) physicianGroup.style.display = '';
+  // Add a note
+  let note = document.getElementById('physician-only-note');
+  if (!note) {
+    note = document.createElement('div');
+    note.id = 'physician-only-note';
+    note.style.cssText = 'background:var(--accent-light);color:var(--accent);font-size:12px;padding:10px 12px;border-radius:var(--radius);margin-bottom:12px;';
+    note.textContent = 'Physician access: you may only update the Physician field.';
+    document.getElementById('p-physician').closest('.form-group').before(note);
+  }
+  note.style.display = '';
+  openModal('modal-add-patient');
+}
+
+function restorePatientModalFields() {
+  // Restore all fields visibility after physician-limited modal
+  const allGroups = document.querySelectorAll('#modal-add-patient .form-group, #modal-add-patient .two-col, #modal-add-patient .three-col');
+  allGroups.forEach(el => el.style.display = '');
+  const note = document.getElementById('physician-only-note');
+  if (note) note.style.display = 'none';
+}
+
+function deletePatient(id) {
+  if (!isAdmin()) { toast('Access denied', 'error'); return; }
+  if (!confirm('Delete this patient and all their results?')) return;
+  const p = getPatient(id);
+  db.patients = db.patients.filter(x => x.id !== id);
+  db.results = db.results.filter(x => x.patientId !== id);
+  addAudit(`Patient deleted: ${p ? p.lastname+', '+p.firstname : id}`);
+  saveDB();
+  toast('Patient deleted');
+  renderPatients();
+  refreshDashboard();
+}
+
+function viewPatient(id) {
+  const p = getPatient(id);
+  if (!p) return;
+  const results = db.results.filter(r => r.patientId === id);
+  document.getElementById('vp-title').textContent = `${p.lastname}, ${p.firstname} — ${getPatientPID(id)}`;
+  document.getElementById('vp-body').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:16px;font-size:13px;background:var(--bg);border-radius:var(--radius);padding:14px">
+      <div><span style="color:var(--text3)">Age / Sex:</span> <strong>${p.age} / ${p.sex}</strong></div>
+      <div><span style="color:var(--text3)">Blood type:</span> <strong>${p.blood || '—'}</strong></div>
+      <div><span style="color:var(--text3)">Physician:</span> <strong>${p.physician || '—'}</strong></div>
+      <div><span style="color:var(--text3)">Contact:</span> <strong>${p.contact || '—'}</strong></div>
+      <div style="grid-column:1/-1"><span style="color:var(--text3)">Address:</span> <strong>${p.address || '—'}</strong></div>
+    </div>
+    <div style="font-weight:600;font-size:13px;margin-bottom:10px">Test history (${results.length})</div>
+    <table>
+      <thead><tr><th>Test</th><th>Result</th><th>Flag</th><th>Status</th><th>Date</th></tr></thead>
+      <tbody>${results.length === 0
+        ? '<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:16px">No results</td></tr>'
+        : results.map(r => `<tr>
+            <td>${getTestName(r.testId)}</td>
+            <td style="font-family:var(--mono)">${r.value !== null ? r.value : '—'}</td>
+            <td>${badgeHTML(r.flag)}</td>
+            <td>${badgeHTML(r.status)}</td>
+            <td style="color:var(--text3);font-size:12px">${fmtDate(r.date)}</td>
+          </tr>`).join('')
+      }</tbody>
+    </table>`;
+  document.getElementById('vp-body').dataset.pid = id;
+  openModal('modal-view-patient');
+}
+
+// ══════════════════════════════════════════
+//  TESTS
+// ══════════════════════════════════════════
+function renderTestFilter() {
+  const panels = [...new Set(db.tests.map(t => t.panel))];
+  const sel = document.getElementById('test-filter');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">All panels</option>' + panels.map(p => `<option ${p===cur?'selected':''}>${p}</option>`).join('');
+}
+
+function renderTests() {
+  const q = document.getElementById('test-search').value.toLowerCase();
+  const f = document.getElementById('test-filter').value;
+  let list = db.tests;
+  if (q) list = list.filter(t => t.name.toLowerCase().includes(q) || t.panel.toLowerCase().includes(q));
+  if (f) list = list.filter(t => t.panel === f);
+
+  const tbody = document.getElementById('test-table');
+  if (list.length === 0) { tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--text3)">No tests found</td></tr>'; return; }
+  tbody.innerHTML = list.map(t => `<tr>
+    <td style="font-weight:500">${t.name}</td>
+    <td><span style="font-size:11px;background:var(--accent-light);color:var(--accent);padding:2px 8px;border-radius:99px;font-weight:500">${t.panel}</span></td>
+    <td style="font-family:var(--mono);font-size:12px">${t.refF}</td>
+    <td style="font-family:var(--mono);font-size:12px">${t.refM}</td>
+    <td style="color:var(--text3)">${t.unit}</td>
+    <td style="font-family:var(--mono);font-size:12px;color:var(--purple)">${t.critLow !== null && t.critLow !== '' ? t.critLow : '—'}</td>
+    <td style="font-family:var(--mono);font-size:12px;color:var(--red)">${t.critHigh !== null && t.critHigh !== '' ? t.critHigh : '—'}</td>
+    <td style="color:var(--text3)">${t.tat ? t.tat + ' min' : '—'}</td>
+    <td style="white-space:nowrap">
+      ${isAdmin() ? `<button class="link-btn" onclick="editTest(${t.id})">Edit</button>` : ''}
+      ${isAdmin() ? `<button class="link-btn red" onclick="deleteTest(${t.id})">Delete</button>` : '<span style="color:var(--text3);font-size:12px">—</span>'}
+    </td>
+  </tr>`).join('');
+}
+
+function saveTest() {
+  if (!isAdmin()) { toast('Access denied', 'error'); return; }
+  const name = document.getElementById('t-name').value.trim();
+  const panel = document.getElementById('t-panel').value.trim();
+  if (!name || !panel) { toast('Test name and panel are required', 'error'); return; }
+  const data = { name, panel, refF: document.getElementById('t-ref-f').value.trim() || '—', refM: document.getElementById('t-ref-m').value.trim() || '—', unit: document.getElementById('t-unit').value.trim(), critLow: document.getElementById('t-crit-low').value !== '' ? parseFloat(document.getElementById('t-crit-low').value) : null, critHigh: document.getElementById('t-crit-high').value !== '' ? parseFloat(document.getElementById('t-crit-high').value) : null, tat: parseInt(document.getElementById('t-tat').value) || 0 };
+
+  const editId = document.getElementById('edit-test-id').value;
+  if (editId) {
+    const t = db.tests.find(x => x.id === parseInt(editId));
+    if (t) { Object.assign(t, data); addAudit(`Test updated: ${name}`); saveDB(); toast('Test updated', 'success'); }
+  } else {
+    db.tests.push({ id: db.nextTestId++, ...data });
+    addAudit(`New test added: ${name} (${panel})`);
+    saveDB();
+    toast('Test added', 'success');
+  }
+  closeModal('modal-add-test');
+  renderTests();
+  renderTestFilter();
+}
+
+function editTest(id) {
+  const t = getTest(id);
+  if (!t) return;
+  document.getElementById('modal-test-title').textContent = 'Edit Test';
+  document.getElementById('edit-test-id').value = id;
+  document.getElementById('t-name').value = t.name;
+  document.getElementById('t-panel').value = t.panel;
+  document.getElementById('t-ref-f').value = t.refF;
+  document.getElementById('t-ref-m').value = t.refM;
+  document.getElementById('t-unit').value = t.unit;
+  document.getElementById('t-crit-low').value = t.critLow !== null ? t.critLow : '';
+  document.getElementById('t-crit-high').value = t.critHigh !== null ? t.critHigh : '';
+  document.getElementById('t-tat').value = t.tat || '';
+  openModal('modal-add-test');
+}
+
+function deleteTest(id) {
+  if (!isAdmin()) { toast('Access denied', 'error'); return; }
+  if (!confirm('Delete this test? All results using it will also be removed.')) return;
+  const t = getTest(id);
+  db.tests = db.tests.filter(x => x.id !== id);
+  db.results = db.results.filter(x => x.testId !== id);
+  addAudit(`Test deleted: ${t ? t.name : id}`);
+  saveDB();
+  toast('Test deleted');
+  renderTests();
+}
+
+// ══════════════════════════════════════════
+//  RESULTS / ENCODING
+// ══════════════════════════════════════════
+function updateEncodeTest() {
+  const pid = parseInt(document.getElementById('e-patient').value);
+  const sel = document.getElementById('e-test');
+  sel.innerHTML = '<option value="">— Select test —</option>' + db.tests.map(t => `<option value="${t.id}">${t.name} (${t.panel})</option>`).join('');
+  document.getElementById('e-ref-display').style.display = 'none';
+  document.getElementById('e-flag-preview').style.display = 'none';
+}
+
+function updateEncodeRef() {
+  const tid = parseInt(document.getElementById('e-test').value);
+  const pid = document.getElementById('e-patient').value;
+  const t = getTest(tid);
+  if (!t) { document.getElementById('e-ref-display').style.display = 'none'; return; }
+  const p = getPatient(parseInt(pid));
+  const ref = p && p.sex === 'Male' ? t.refM : t.refF;
+  document.getElementById('e-ref-text').textContent = ref + ' ' + t.unit;
+  document.getElementById('e-unit-text').textContent = t.unit;
+  document.getElementById('e-crit-text').textContent = `Low ≤${t.critLow !== null ? t.critLow : '—'} / High ≥${t.critHigh !== null ? t.critHigh : '—'}`;
+  document.getElementById('e-ref-display').style.display = 'block';
+  previewFlag();
+}
+
+function previewFlag() {
+  const tid = parseInt(document.getElementById('e-test').value);
+  const pid = parseInt(document.getElementById('e-patient').value);
+  const val = parseFloat(document.getElementById('e-value').value);
+  const preview = document.getElementById('e-flag-preview');
+  if (!tid || isNaN(val)) { preview.style.display = 'none'; return; }
+  const t = getTest(tid), p = getPatient(pid);
+  const flag = computeFlag(t, val, p ? p.sex : 'Female');
+  const colors = { Critical: ['var(--red-light)','var(--red)'], High: ['var(--amber-light)','var(--amber)'], Low: ['var(--purple-light)','var(--purple)'], Normal: ['var(--green-light)','var(--green)'] };
+  const [bg, col] = colors[flag] || ['var(--bg)','var(--text)'];
+  preview.style.display = 'block';
+  preview.style.background = bg;
+  preview.style.color = col;
+  preview.textContent = `Auto-flag result: ${flag}`;
+}
+
+function populateEncodePatients() {
+  const sel = document.getElementById('e-patient');
+  sel.innerHTML = '<option value="">— Select patient —</option>' + db.patients.map(p => `<option value="${p.id}">${getPatientPID(p.id)} — ${p.lastname}, ${p.firstname}</option>`).join('');
+  document.getElementById('e-test').innerHTML = '<option value="">— Select test —</option>' + db.tests.map(t => `<option value="${t.id}">${t.name} (${t.panel})</option>`).join('');
+}
+
+function saveResult() {
+  if (!isAdmin()) { toast('Access denied', 'error'); return; }
+  const pid = parseInt(document.getElementById('e-patient').value);
+  const tid = parseInt(document.getElementById('e-test').value);
+  const val = document.getElementById('e-value').value.trim();
+  const notes = document.getElementById('e-notes').value.trim();
+  if (!pid || !tid) { toast('Select patient and test', 'error'); return; }
+
+  const p = getPatient(pid), t = getTest(tid);
+  const value = val !== '' ? parseFloat(val) : null;
+  const flag = value !== null ? computeFlag(t, value, p ? p.sex : 'Female') : null;
+  const status = flag === 'Critical' ? 'Critical' : value !== null ? 'Processing' : 'Pending';
+
+  const editId = document.getElementById('edit-result-id').value;
+  if (editId) {
+    const r = db.results.find(x => x.id === parseInt(editId));
+    if (r) { Object.assign(r, { patientId:pid, testId:tid, value, flag, status, notes, encodedBy: db.currentUser.name }); addAudit(`Result updated: ${p.lastname}, ${p.firstname} — ${t.name} = ${value} (${flag})`); saveDB(); toast('Result updated', 'success'); }
+  } else {
+    const r = { id: db.nextResultId++, patientId:pid, testId:tid, value, flag, status, notes, date: new Date().toISOString(), encodedBy: db.currentUser.name, releasedAt: status === 'Released' ? new Date().toISOString() : null };
+    db.results.push(r);
+    addAudit(`Result encoded: ${p.lastname}, ${p.firstname} — ${t.name} = ${value !== null ? value : 'pending'} (${flag || 'no value'})`);
+    if (flag === 'Critical') addAudit(`⚠ CRITICAL VALUE: ${p.lastname}, ${p.firstname} — ${t.name} ${value} ${t.unit} — notify physician immediately`);
+    saveDB();
+    toast(flag === 'Critical' ? '⚠ Critical value flagged!' : 'Result saved', flag === 'Critical' ? 'error' : 'success');
+  }
+  closeModal('modal-encode');
+  renderResults();
+  refreshDashboard();
+  document.getElementById('edit-result-id').value = '';
+  document.getElementById('e-value').value = '';
+  document.getElementById('e-notes').value = '';
+  document.getElementById('e-flag-preview').style.display = 'none';
+}
+
+function openEncodeModal() {
+  document.getElementById('edit-result-id').value = '';
+  document.getElementById('e-value').value = '';
+  document.getElementById('e-notes').value = '';
+  document.getElementById('e-flag-preview').style.display = 'none';
+  document.getElementById('e-ref-display').style.display = 'none';
+  populateEncodePatients();
+  openModal('modal-encode');
+}
+
+function renderResults() {
+  const q = document.getElementById('result-search').value.toLowerCase();
+  const f = document.getElementById('result-filter').value;
+  let list = db.results.slice().reverse();
+
+  // Patient: only released results
+  if (isPatient()) {
+    list = list.filter(r => r.status === 'Released');
+  }
+
+  if (q) list = list.filter(r => getPatientName(r.patientId).toLowerCase().includes(q) || getTestName(r.testId).toLowerCase().includes(q));
+  if (f) list = list.filter(r => r.status === f || r.flag === f);
+
+  // Update page subtitle based on role
+  const sub = document.querySelector('#page-results .page-sub');
+  if (sub) {
+    if (isAdmin()) sub.textContent = 'Encode, validate, and release laboratory results';
+    else if (isPhysician()) sub.textContent = 'View laboratory results (read-only)';
+    else sub.textContent = 'Your released laboratory results';
+  }
+
+  // Show/hide encode button and search filter based on role
+  const encodeBtn = document.getElementById('btn-encode-result');
+  if (encodeBtn) encodeBtn.style.display = isAdmin() ? '' : 'none';
+  const resultFilter = document.getElementById('result-filter');
+  if (resultFilter) resultFilter.style.display = isPatient() ? 'none' : '';
+
+  const tbody = document.getElementById('result-table');
+  if (list.length === 0) { tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:32px;color:var(--text3)">No results found</td></tr>'; return; }
+
+  tbody.innerHTML = list.map(r => {
+    const t = getTest(r.testId);
+    const p = getPatient(r.patientId);
+    const ref = p && p.sex === 'Male' && t ? t.refM : t ? t.refF : '—';
+    return `<tr>
+      <td style="font-weight:500">${getPatientName(r.patientId)}</td>
+      <td>${getTestName(r.testId)}</td>
+      <td style="font-family:var(--mono);font-weight:500;color:${r.flag==='Critical'?'var(--red)':r.flag==='High'?'var(--amber)':r.flag==='Low'?'var(--purple)':'inherit'}">${r.value !== null ? r.value : '—'}</td>
+      <td style="font-size:12px;color:var(--text3);font-family:var(--mono)">${ref}</td>
+      <td style="color:var(--text3);font-size:12px">${t ? t.unit : '—'}</td>
+      <td>${r.flag ? badgeHTML(r.flag) : '—'}</td>
+      <td>${badgeHTML(r.status)}</td>
+      <td style="font-size:12px;color:var(--text3)">${fmtDate(r.date)}</td>
+      <td style="font-size:12px;color:var(--text3)">${r.encodedBy || '—'}</td>
+      <td style="white-space:nowrap">
+        ${(isAdmin() && r.status !== 'Released') ? `<button class="link-btn" onclick="releaseResult(${r.id})">Release</button>` : ''}
+        ${isAdmin() ? `<button class="link-btn" onclick="editResult(${r.id})">Edit</button>` : ''}
+        ${isAdmin() ? `<button class="link-btn red" onclick="deleteResult(${r.id})">Delete</button>` : '<span style="color:var(--text3);font-size:12px">View only</span>'}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function releaseResult(id) {
+  if (!isAdmin()) { toast('Access denied', 'error'); return; }
+  const r = db.results.find(x => x.id === id);
+  if (!r) return;
+  r.status = 'Released';
+  r.releasedAt = new Date().toISOString();
+  addAudit(`Result released: ${getPatientName(r.patientId)} — ${getTestName(r.testId)}`);
+  saveDB();
+  toast('Result released', 'success');
+  renderResults();
+  refreshDashboard();
+}
+
+function editResult(id) {
+  if (!isAdmin()) { toast('Access denied', 'error'); return; }
+  const r = db.results.find(x => x.id === id);
+  if (!r) return;
+  populateEncodePatients();
+  document.getElementById('edit-result-id').value = id;
+  document.getElementById('e-patient').value = r.patientId;
+  updateEncodeTest();
+  document.getElementById('e-test').value = r.testId;
+  updateEncodeRef();
+  document.getElementById('e-value').value = r.value !== null ? r.value : '';
+  document.getElementById('e-notes').value = r.notes || '';
+  openModal('modal-encode');
+}
+
+function deleteResult(id) {
+  if (!isAdmin()) { toast('Access denied', 'error'); return; }
+  if (!confirm('Delete this result?')) return;
+  const r = db.results.find(x => x.id === id);
+  db.results = db.results.filter(x => x.id !== id);
+  addAudit(`Result deleted: ${r ? getPatientName(r.patientId) + ' — ' + getTestName(r.testId) : id}`);
+  saveDB();
+  toast('Result deleted');
+  renderResults();
+  refreshDashboard();
+}
+
+// ══════════════════════════════════════════
+//  REPORTS
+// ══════════════════════════════════════════
+function renderReportList() {
+  const q = document.getElementById('report-search').value.toLowerCase();
+  const sel = document.getElementById('report-patient-select');
+  const cur = sel.value;
+  let patients = db.patients;
+  if (q) patients = patients.filter(p => `${p.firstname} ${p.lastname}`.toLowerCase().includes(q));
+  sel.innerHTML = '<option value="">— Select patient —</option>' + patients.map(p => `<option value="${p.id}" ${p.id==cur?'selected':''}>${getPatientPID(p.id)} — ${p.lastname}, ${p.firstname}</option>`).join('');
+  if (cur) loadReport(cur);
+}
+
+function loadReport(pid) {
+  if (!pid) { document.getElementById('report-area').innerHTML = ''; return; }
+  pid = parseInt(pid);
+  const p = getPatient(pid);
+  if (!p) return;
+  const results = db.results.filter(r => r.patientId === pid && r.status === 'Released');
+  const now = new Date();
+
+  document.getElementById('report-area').innerHTML = `
+    <div class="card" id="printable-report">
+      <div class="card-header">
+        <span class="card-title">${getPatientPID(pid)} — ${p.lastname}, ${p.firstname} — Lab Report</span>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-sm" onclick="window.print()">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><rect x="3" y="1" width="10" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="2" y="6" width="12" height="7" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="5" y="10" width="6" height="4" rx="0.5" fill="currentColor" opacity="0.5"/></svg>
+            Print Report
+          </button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="report-header">
+          <div><div class="report-lab-name">LabTrack Pro</div><div class="report-lab-sub">Laboratory Information System</div></div>
+          <div style="text-align:right;font-size:12px;color:var(--text2)">
+            <div>Date printed: ${now.toLocaleDateString('en-PH', {month:'long',day:'numeric',year:'numeric'})}</div>
+            <div>Time: ${now.toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'})}</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;background:var(--bg);padding:14px;border-radius:var(--radius);font-size:13px">
+          <div><span style="color:var(--text3)">Patient name:</span> <strong>${p.lastname}, ${p.firstname}</strong></div>
+          <div><span style="color:var(--text3)">Patient ID:</span> <strong style="font-family:var(--mono)">${getPatientPID(pid)}</strong></div>
+          <div><span style="color:var(--text3)">Age / Sex:</span> <strong>${p.age} / ${p.sex}</strong></div>
+          <div><span style="color:var(--text3)">Blood type:</span> <strong>${p.blood || '—'}</strong></div>
+          <div><span style="color:var(--text3)">Physician:</span> <strong>${p.physician || '—'}</strong></div>
+          <div><span style="color:var(--text3)">Contact:</span> <strong>${p.contact || '—'}</strong></div>
+        </div>
+        <div style="font-size:13px;font-weight:600;margin-bottom:10px">Laboratory Results</div>
+        ${results.length === 0
+          ? '<div style="text-align:center;padding:32px;color:var(--text3);font-size:13px">No released results for this patient.</div>'
+          : `<table>
+              <thead><tr><th>Test</th><th>Panel</th><th>Result</th><th>Ref. range</th><th>Unit</th><th>Flag</th><th>Released</th><th>Encoded by</th></tr></thead>
+              <tbody>${results.map(r => {
+                const t = getTest(r.testId);
+                const ref = p.sex === 'Male' && t ? t.refM : t ? t.refF : '—';
+                return `<tr>
+                  <td>${getTestName(r.testId)}</td>
+                  <td style="font-size:12px;color:var(--text3)">${t ? t.panel : '—'}</td>
+                  <td style="font-family:var(--mono);font-weight:600;color:${r.flag==='Critical'?'var(--red)':r.flag==='High'?'var(--amber)':r.flag==='Low'?'var(--purple)':'inherit'}">${r.value !== null ? r.value : '—'}</td>
+                  <td style="font-family:var(--mono);font-size:12px;color:var(--text3)">${ref}</td>
+                  <td style="color:var(--text3);font-size:12px">${t ? t.unit : '—'}</td>
+                  <td>${r.flag ? badgeHTML(r.flag) : '—'}</td>
+                  <td style="font-size:12px;color:var(--text3)">${fmtDate(r.releasedAt || r.date)}</td>
+                  <td style="font-size:12px;color:var(--text3)">${r.encodedBy || '—'}</td>
+                </tr>`;
+              }).join('')}</tbody>
+            </table>`
+        }
+        <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:12px;color:var(--text3)">
+          <div>Encoded by: <strong style="color:var(--text)">${db.currentUser.name}</strong></div>
+          <div>This report is computer-generated and valid without signature.</div>
+        </div>
+      </div>
+    </div>`;
+
+  addAudit(`Report viewed: ${p.lastname}, ${p.firstname}`);
+}
+
+function printPatientReport() {
+  const pid = parseInt(document.getElementById('vp-body').dataset.pid);
+  if (!pid) return;
+  closeModal('modal-view-patient');
+  showPage('reports');
+  setTimeout(() => {
+    const sel = document.getElementById('report-patient-select');
+    renderReportList();
+    sel.value = pid;
+    loadReport(pid);
+    setTimeout(() => window.print(), 400);
+  }, 100);
+}
+
+// ══════════════════════════════════════════
+//  AUDIT TRAIL
+// ══════════════════════════════════════════
+function renderAudit() {
+  const el = document.getElementById('audit-log');
+  if (!el) return;
+  if (db.auditLog.length === 0) { el.innerHTML = '<div style="text-align:center;color:var(--text3);padding:32px">No audit records</div>'; return; }
+  el.innerHTML = db.auditLog.map(a => `
+    <div class="audit-entry">
+      <div class="audit-time">${new Date(a.time).toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'})}</div>
+      <div class="audit-dot"></div>
+      <div class="audit-msg"><span class="audit-user">${a.user}</span> — ${a.msg}</div>
+    </div>`).join('');
+}
+
+function clearAudit() {
+  if (!isAdmin()) { toast('Access denied', 'error'); return; }
+  if (!confirm('Clear the audit log?')) return;
+  db.auditLog = [];
+  addAudit('Audit log cleared');
+  saveDB();
+  renderAudit();
+}
+
+// ══════════════════════════════════════════
+//  SETTINGS
+// ══════════════════════════════════════════
+function renderSettings() {
+  document.getElementById('stat-patients').textContent = db.patients.length;
+  document.getElementById('stat-results').textContent = db.results.length;
+  document.getElementById('stat-tests').textContent = db.tests.length;
+  document.getElementById('set-name').value = db.currentUser.name;
+  document.getElementById('set-initials').value = db.currentUser.initials;
+  document.getElementById('set-role').value = db.currentUser.role;
+  document.getElementById('set-access').value = db.currentUser.accessLevel || 'admin';
+  updateAccessHint();
+
+  // DB size estimate
+  try {
+    const raw = localStorage.getItem(DB_KEY) || '';
+    const kb = (raw.length / 1024).toFixed(1);
+    document.getElementById('stat-dbsize').textContent = kb + ' KB';
+    document.getElementById('stat-storage').textContent = 'localStorage (persistent ✓)';
+    document.getElementById('stat-storage').style.color = 'var(--green)';
+  } catch(e) {
+    document.getElementById('stat-dbsize').textContent = 'unavailable';
+    document.getElementById('stat-storage').textContent = 'localStorage unavailable ✗';
+    document.getElementById('stat-storage').style.color = 'var(--red)';
+  }
+
+  // Hide reset button for non-admins
+  const resetBtn = document.getElementById('btn-reset-db');
+  if (resetBtn) resetBtn.style.display = isAdmin() ? '' : 'none';
+}
+
+function updateAccessHint() {
+  const hints = {
+    admin:     '✓ Full system access — add/edit/delete patients, tests, results, audit, settings.',
+    physician: '✓ Can view dashboard, patients, results, reports. Edit limited to physician field only. No tests or audit access.',
+    patient:   '✓ Can only view released laboratory results. All other sections are hidden.',
+  };
+  const sel = document.getElementById('set-access');
+  const hint = document.getElementById('set-access-hint');
+  if (sel && hint) hint.textContent = hints[sel.value] || '';
+}
+
+function saveSettings() {
+  db.currentUser.name = document.getElementById('set-name').value.trim() || db.currentUser.name;
+  db.currentUser.initials = document.getElementById('set-initials').value.trim().toUpperCase() || db.currentUser.initials;
+  db.currentUser.role = document.getElementById('set-role').value;
+  db.currentUser.accessLevel = document.getElementById('set-access').value;
+  document.getElementById('topbar-name').textContent = db.currentUser.name;
+  document.getElementById('topbar-role').textContent = db.currentUser.role;
+  document.getElementById('topbar-avatar').textContent = db.currentUser.initials;
+  saveDB();
+  applyAccessControl();
+  addAudit(`User profile updated — access level: ${db.currentUser.accessLevel}`);
+  toast('Settings saved', 'success');
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'labtrack-backup-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  addAudit('Data exported as JSON backup');
+  toast('Data exported', 'success');
+}
+
+function importData() {
+  if (!isAdmin()) { toast('Access denied', 'error'); return; }
+  document.getElementById('import-file-input').click();
+}
+
+function handleImport(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      if (!parsed.patients || !parsed.tests || !parsed.results) {
+        toast('Invalid backup file — missing required data', 'error'); return;
+      }
+      if (!confirm(`Import backup? This will replace all current data with:\n• ${parsed.patients.length} patients\n• ${parsed.tests.length} tests\n• ${parsed.results.length} results\n\nThis cannot be undone.`)) return;
+      db = Object.assign({}, DB_DEFAULTS, parsed);
+      saveDB();
+      addAudit('Data imported from JSON backup');
+      // Refresh UI
+      document.getElementById('topbar-name').textContent = db.currentUser.name;
+      document.getElementById('topbar-role').textContent = db.currentUser.role;
+      document.getElementById('topbar-avatar').textContent = db.currentUser.initials;
+      applyAccessControl();
+      refreshDashboard();
+      renderSettings();
+      toast('Data imported successfully', 'success');
+    } catch(err) {
+      toast('Failed to parse backup file', 'error');
+    }
+    input.value = ''; // reset so same file can be re-imported
+  };
+  reader.readAsText(file);
+}
+
+// ══════════════════════════════════════════
+//  GLOBAL SEARCH
+// ══════════════════════════════════════════
+function globalSearch(q) {
+  if (!q) return;
+  q = q.toLowerCase();
+  const pMatch = db.patients.filter(p => `${p.firstname} ${p.lastname}`.toLowerCase().includes(q) || getPatientPID(p.id).includes(q));
+  if (pMatch.length > 0) {
+    showPage('patients');
+    document.getElementById('patient-search').value = q;
+    renderPatients();
+  }
+}
+
+// ══════════════════════════════════════════
+//  BUTTON WIRING (override modal buttons)
+// ══════════════════════════════════════════
+document.querySelector('[onclick="openModal(\'modal-add-patient\')"]').onclick = openAddPatient;
+document.querySelector('[onclick="openModal(\'modal-add-test\')"]').onclick = function() {
+  if (!isAdmin()) { toast('Access denied', 'error'); return; }
+  document.getElementById('modal-test-title').textContent = 'Add New Test';
+  document.getElementById('edit-test-id').value = '';
+  ['t-name','t-panel','t-ref-f','t-ref-m','t-unit','t-tat'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('t-crit-low').value = '';
+  document.getElementById('t-crit-high').value = '';
+  openModal('modal-add-test');
+};
+document.querySelector('[onclick="openModal(\'modal-encode\')"]').onclick = function() {
+  if (!isAdmin()) { toast('Access denied', 'error'); return; }
+  openEncodeModal();
+};
+
+// Also gate the modal-footer close button for add-patient to restore fields
+document.querySelector('#modal-add-patient .modal-close').addEventListener('click', restorePatientModalFields);
+document.querySelector('#modal-add-patient .modal-footer .btn').addEventListener('click', restorePatientModalFields);
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+seedData();
+applyAccessControl();
+refreshDashboard();
+</script>
+</body>
+</html>
